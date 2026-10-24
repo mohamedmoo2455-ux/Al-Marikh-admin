@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز قيادة المريخ | Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.02); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        .glass-header {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(234, 88, 12, 0.2);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #ea580c; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-[#050505] text-white font-sans overflow-x-hidden selection:bg-orange-600 selection:text-white flex">
+
+    <!-- القائمة الجانبية -->
+    <aside class="w-64 glass-panel h-screen fixed right-0 top-0 flex flex-col hidden md:flex border-l border-white/10 z-50">
+        <div class="h-20 flex items-center justify-center border-b border-white/10">
+            <span class="text-2xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-300">المريخ أدمين</span>
+        </div>
+        <nav class="flex-1 px-4 py-6 space-y-4">
+            <a href="#" class="flex items-center gap-3 bg-orange-600/20 text-orange-400 px-4 py-3 rounded-xl border border-orange-500/30 transition">
+                <span>📊</span> <span>نظرة عامة</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 text-gray-400 hover:bg-white/5 hover:text-white px-4 py-3 rounded-xl transition">
+                <span>🚀</span> <span>كبسولات الشحن (الطلبات)</span>
+            </a>
+        </nav>
+        <div class="p-4 border-t border-white/10">
+            <button class="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-red-400 transition py-2">
+                <span>🚪</span> <span>تسجيل خروج</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- مساحة العمل -->
+    <main class="flex-1 md:mr-64 min-h-screen flex flex-col relative">
+        
+        <header class="h-20 glass-header sticky top-0 z-40 px-8 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-200">مرحباً بك في مركز القيادة</h1>
+            <div class="flex items-center gap-4">
+                <button class="relative p-2 text-gray-400 hover:text-white transition">
+                    <span>🔔</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-orange-500 rounded-full animate-ping"></span>
+                </button>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-600 to-amber-400 p-0.5">
+                    <div class="w-full h-full bg-black rounded-full flex items-center justify-center text-sm font-bold">M</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-8 relative z-10">
+            <!-- كروت الإحصائيات -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel p-6 rounded-2xl border-t-[3px] border-t-amber-400">
+                    <p class="text-gray-400 text-sm mb-2">إجمالي كبسولات الشحن (الطلبات)</p>
+                    <h3 class="text-4xl font-black text-white" id="total-orders">0</h3>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border-t-[3px] border-t-orange-500">
+                    <p class="text-gray-400 text-sm mb-2">حالة النظام</p>
+                    <h3 class="text-2xl font-bold text-green-400 mt-2">🚀 متصل ومستعد للاستقبال</h3>
+                </div>
+            </div>
+
+            <!-- جدول الطلبات -->
+            <div class="glass-panel rounded-2xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+                <div class="p-6 border-b border-white/10 flex justify-between items-center bg-black/40">
+                    <h2 class="text-xl font-bold text-white">الطلبات الواردة من الموقع</h2>
+                    <button onclick="loadOrders()" class="bg-white/5 hover:bg-orange-600 text-sm px-4 py-2 rounded-lg transition border border-white/10">تحديث البيانات 🔄</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-black/60 text-gray-400 text-sm">
+                                <th class="p-4 font-medium">رقم الطلب</th>
+                                <th class="p-4 font-medium">العميل</th>
+                                <th class="p-4 font-medium">المنتجات</th>
+                                <th class="p-4 font-medium">الإجمالي</th>
+                                <th class="p-4 font-medium">الحالة</th>
+                                <th class="p-4 font-medium">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body" class="text-sm">
+                            <!-- الطلبات هتظهر هنا تلقائياً -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        // قراءة الطلبات من localStorage وعرضها
+        function loadOrders() {
+            const tableBody = document.getElementById('orders-table-body');
+            const orders = JSON.parse(localStorage.getItem('marikh_orders')) || [];
+            
+            document.getElementById('total-orders').innerText = orders.length;
+
+            if (orders.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-500 text-lg">لا توجد طلبات في كبسولة الشحن حالياً</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = ''; 
+            
+            orders.forEach(order => {
+                const row = `
+                    <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                        <td class="p-4 font-mono text-orange-400">${order.id}</td>
+                        <td class="p-4 text-gray-200 font-bold">
+                            ${order.name} <br> <span class="text-xs text-gray-500 font-normal">${order.phone}</span>
+                        </td>
+                        <td class="p-4 text-gray-400">${order.items}</td>
+                        <td class="p-4 font-bold text-white">${order.total}</td>
+                        <td class="p-4">
+                            <span class="bg-yellow-500/10 text-yellow-500 px-3 py-1 rounded-full text-xs font-bold border border-yellow-500/20">${order.status}</span>
+                        </td>
+                        <td class="p-4">
+                            <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-300 transition text-xs border border-red-500/30 hover:bg-red-500/10 px-3 py-2 rounded-lg">حذف</button>
+                        </td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        // مسح الطلب
+        function deleteOrder(orderId) {
+            if(confirm("متأكد إنك عايز تمسح الطلب ده من النظام؟")) {
+                let orders = JSON.parse(localStorage.getItem('marikh_orders')) || [];
+                orders = orders.filter(o => o.id !== orderId);
+                localStorage.setItem('marikh_orders', JSON.stringify(orders));
+                loadOrders(); 
+            }
+        }
+
+        // تشغيل الدالة فور فتح الصفحة
+        loadOrders();
+    </script>
+</body>
+</html>
